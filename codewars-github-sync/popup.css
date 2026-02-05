@@ -1,20 +1,15 @@
 :root {
   --primary: #3b82f6;
   --primary-hover: #2563eb;
-  /* Glassmorphism Configuration */
   --bg: transparent;
   --surface: rgba(30, 41, 59, 0.4);
-  /* More transparent */
   --text: #ffffff;
   --text-muted: #ffffff;
   --border: rgba(255, 255, 255, 0.4);
-  /* Light frost border */
   --success: #4ade80;
   --error: #f87171;
   --radius: 12px;
-  /* Softer rounded corners */
   --backdrop: blur(16px) saturate(180%);
-  /* Premium glass effect */
 }
 
 .info-card,
@@ -38,13 +33,11 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   font-size: 14px;
   font-weight: 600;
-  /* Thicker text */
   min-height: 480px;
   position: relative;
   overflow: hidden;
 }
 
-/* Firefly Background & Blur */
 body::before {
   content: "";
   position: absolute;
@@ -56,9 +49,7 @@ body::before {
   background-size: cover;
   background-position: center;
   filter: brightness(0.7) blur(4px);
-  /* Added Blur */
   transform: scale(1.05);
-  /* Slight scale to prevent blurred edges */
   z-index: -2;
 }
 
@@ -67,7 +58,6 @@ body::before {
   left: 50%;
   top: 50%;
   width: 4px;
-  /* 0.4vw approx */
   height: 4px;
   margin: -2px 0 0 -2px;
   pointer-events: none;
@@ -82,7 +72,6 @@ body::before {
   height: 100%;
   border-radius: 50%;
   transform-origin: -100px;
-  /* -10vw approx */
 }
 
 .firefly::before {
@@ -98,7 +87,6 @@ body::before {
   animation: drift 8s ease alternate infinite, flash 6s ease infinite;
 }
 
-/* Animations */
 @keyframes drift {
   0% {
     transform: rotate(0deg);
@@ -124,7 +112,6 @@ body::before {
   }
 }
 
-/* Randomized Movement Paths (Approximating SASS loop) */
 @keyframes move1 {
   0% {
     transform: translate(10vw, -20vh) scale(0.8);
@@ -201,8 +188,6 @@ body::before {
   }
 }
 
-
-/* UI Styles */
 .container {
   padding: 16px;
   display: flex;
@@ -286,44 +271,34 @@ button {
 h1 {
   margin: 0;
   font-size: 22px;
-  /* Larger */
   font-weight: 800;
-  /* Thicker */
   color: #fff;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  /* Pop */
   letter-spacing: 0.5px;
 }
 
-/* ... existing ... */
-
 .stat-value {
   font-size: 28px;
-  /* Larger */
   font-weight: 800;
   color: var(--primary);
   line-height: 1.1;
   text-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
-  /* Glow */
 }
 
 .stat-label {
   font-size: 11px;
   color: #cbd5e1;
-  /* Brighter muted text */
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .tab-btn {
-  /* ... */
   font-weight: 700;
   font-size: 14px;
 }
 
 .primary-btn {
-  /* ... */
   font-weight: 700;
   font-size: 14px;
   letter-spacing: 0.5px;
@@ -402,7 +377,6 @@ h1 {
   margin-bottom: 16px;
   position: relative;
   padding-right: 32px;
-  /* Space for the absolute edit button */
 }
 
 .config-row {
@@ -498,7 +472,6 @@ code {
   padding: 0;
 }
 
-/* Repository Selection */
 .repo-selection {
   display: flex;
   gap: 8px;
@@ -522,7 +495,6 @@ select:disabled {
 
 select option {
   background-color: #0f172a;
-  /* Dark slate/black for options (Gradients not supported on options) */
   color: white;
 }
 
@@ -563,7 +535,6 @@ select option {
   }
 }
 
-/* Tabs */
 .tabs {
   display: flex;
   border-bottom: 2px solid var(--border);
@@ -581,7 +552,6 @@ select option {
   transition: all 0.2s;
   border-bottom: 2px solid transparent;
   margin-bottom: -2px;
-  /* Overlap border */
 }
 
 .tab-btn:hover {
@@ -597,7 +567,6 @@ select option {
   display: none;
 }
 
-/* History List */
 .history-list {
   max-height: 300px;
   overflow-y: auto;
@@ -666,22 +635,17 @@ select option {
 }
 
 #app-logout-btn {
-  /* Match .secondary-btn style */
   padding: 8px 12px;
   background-color: var(--surface);
   border: 1px solid var(--border);
   color: var(--text);
   font-weight: 500;
   border-radius: var(--radius);
-
-  /* Layout specific */
   cursor: pointer;
   position: relative;
   z-index: 100;
   margin-bottom: 12px;
-  /* Ensure spacing */
   width: auto;
-  /* Don't need full width typically */
   display: inline-block;
 }
 
@@ -690,7 +654,6 @@ select option {
   background-color: #2d3748;
 }
 
-/* Stats Row */
 .stats-container {
   display: flex;
   gap: 12px;
@@ -728,7 +691,6 @@ select option {
   letter-spacing: 0.5px;
 }
 
-/* Social Footer */
 .social-footer {
   margin-top: 16px;
   text-align: center;

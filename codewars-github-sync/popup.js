@@ -1,35 +1,27 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  // UI Elements
   const setupSection = document.getElementById('setup-section');
   const syncSection = document.getElementById('sync-section');
 
-  // Codewars Inputs
   const cwUsernameInput = document.getElementById('codewars-username');
   const verifyUserBtn = document.getElementById('verify-user-btn');
   const userStatus = document.getElementById('user-status');
 
-  // GitHub Inputs
   const authBtn = document.getElementById('auth-btn');
   const ghUserInfo = document.getElementById('github-user-info');
   const ghUsernameDisplay = document.getElementById('gh-username');
   const githubRepoInput = document.getElementById('github-repo');
 
-  // Global Buttons
   const saveBtn = document.getElementById('save-btn');
   const syncBtn = document.getElementById('sync-btn');
   const editConfigBtn = document.getElementById('edit-config-btn');
 
-
-  // Repo UI
   const refreshReposBtn = document.getElementById('refresh-repos-btn');
   const repoSelect = document.getElementById('repo-select');
 
-  // Display Areas
   const messageArea = document.getElementById('message-area');
   const currentRepoDisplay = document.getElementById('current-repo');
   const displayCwUser = document.getElementById('display-cw-user');
 
-  // State
   let state = {
     codewarsUsername: null,
     githubToken: null,
@@ -37,9 +29,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     githubRepo: null
   };
 
-  // ==========================================
-  // INITIALIZATION
-  // ==========================================
   async function init() {
     const data = await chrome.storage.local.get([
       'codewarsUsername',
@@ -54,7 +43,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       showSyncUI();
     } else {
       showSetupUI();
-      // Prefill available data
       if (state.codewarsUsername) cwUsernameInput.value = state.codewarsUsername;
       if (state.githubRepo) githubRepoInput.value = state.githubRepo;
       updateAuthUI();
@@ -65,23 +53,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   init();
   createFireflies();
 
-  // ... rest of code ...
-
   function createFireflies() {
-    // Clean up any existing
     const existing = document.querySelectorAll('.firefly');
     existing.forEach(el => el.remove());
 
     const container = document.body;
 
-    // Create 15 fireflies
     for (let i = 1; i <= 15; i++) {
       const fly = document.createElement('div');
       fly.className = 'firefly';
 
-      // Randomize animation properties
-      const moveAnim = `move${(i % 6) + 1}`; // move1 to move6
-      const duration = 15 + Math.random() * 15 + 's'; // 15-30s duration for slower drift
+      const moveAnim = `move${(i % 6) + 1}`;
+      const duration = 15 + Math.random() * 15 + 's';
       const delay = Math.random() * 5 + 's';
 
       fly.style.animationName = moveAnim;
@@ -91,10 +74,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       container.appendChild(fly);
     }
   }
-  // ACTIONS
-  // ==========================================
 
-  // 1. Verify Codewars User
   verifyUserBtn.addEventListener('click', async () => {
     const username = cwUsernameInput.value.trim();
     if (!username) return showStatus(userStatus, 'Please enter a username', 'error');
@@ -120,16 +100,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // 2. GitHub Auth
   authBtn.addEventListener('click', async () => {
-    console.log('GitHub Auth Button Clicked');
     authBtn.disabled = true;
     authBtn.innerHTML = 'Connecting...';
 
     try {
-      console.log('Sending message to background...');
       const response = await chrome.runtime.sendMessage({ action: 'AUTH_GITHUB' });
-      console.log('Response received:', response);
 
       if (response && response.success) {
         state.githubToken = response.token;
@@ -141,22 +117,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateAuthUI();
         checkFormValidity();
       } else {
-        console.error('Auth failed response:', response);
         authBtn.disabled = false;
         authBtn.innerHTML = 'Sign in with GitHub';
         alert('Authentication failed: ' + (response?.error || 'Unknown error'));
       }
     } catch (err) {
-      console.error('Popup Error:', err);
       authBtn.disabled = false;
       authBtn.innerHTML = 'Sign in with GitHub';
       alert('Error: ' + err.message);
     }
   });
 
-
-
-  // 4. Save Configuration
   saveBtn.addEventListener('click', async () => {
     const repo = repoSelect.value || githubRepoInput.value.trim();
     if (!repo || !repo.includes('/')) {
@@ -177,7 +148,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 1000);
   });
 
-  // 5. Sync Action
   syncBtn.addEventListener('click', async () => {
     setSyncing(true);
     showMessage('Initializing sync...', 'normal');
@@ -197,20 +167,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         let msg = `Successfully synced to ${response.filePath}`;
         if (response.readmeUpdated) msg += ' and updated README.md';
         showMessage(msg, 'success');
-        loadStats(); // Update counters
+        loadStats();
       } else {
         throw new Error(response.error || 'Unknown error occurred');
       }
 
     } catch (err) {
-      console.error(err);
       showMessage(err.message, 'error');
     } finally {
       setSyncing(false);
     }
   });
 
-  // 6. Config Edit / Reset
   editConfigBtn.addEventListener('click', () => {
     showSetupUI();
     cwUsernameInput.value = state.codewarsUsername || '';
@@ -218,19 +186,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateAuthUI();
   });
 
-
-
-  // ==========================================
-  // HELPERS
-  // ==========================================
-
-
-
-  // ... (previous code)
-
-  // ==========================================
-  // INITIALIZATION
-  // ==========================================
   async function init() {
     const data = await chrome.storage.local.get([
       'codewarsUsername',
@@ -249,21 +204,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (state.githubRepo) githubRepoInput.value = state.githubRepo;
       updateAuthUI();
 
-      // Attempt to load repos if token exists
       if (state.githubToken) {
         loadRepositories();
       }
     }
   }
 
-  init();
-
-  // ... (previous actions)
-
-  // 7. Refresh Repositories
   refreshReposBtn.addEventListener('click', loadRepositories);
 
-  // 8. Handle Repo Selection
   repoSelect.addEventListener('change', () => {
     const selectedRepo = repoSelect.value;
     if (selectedRepo) {
@@ -273,17 +221,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // 9. Tab Switching
   const tabs = document.querySelectorAll('.tab-btn');
   const tabContents = document.querySelectorAll('.tab-content');
 
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
-      // Activate Tab
       tabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
 
-      // Show Content
       const targetId = tab.getAttribute('data-tab');
       tabContents.forEach(content => {
         if (content.id === targetId) {
@@ -293,19 +238,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       });
 
-      // If History tab, load history
       if (targetId === 'tab-history') {
         loadHistory();
       }
     });
   });
 
-  // 10. Clear History
   const clearHistoryBtn = document.getElementById('clear-history-btn');
   const historyList = document.getElementById('history-list');
 
   clearHistoryBtn.addEventListener('click', async () => {
-    // console.log('Clear History clicked');
     if (confirm('Clear sync history?')) {
       await chrome.storage.local.remove('syncHistory');
       loadHistory();
@@ -346,7 +288,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Helpers
   async function loadRepositories() {
     if (!state.githubToken) return;
 
@@ -368,8 +309,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         throw new Error(errorMsg || 'Failed to fetch');
       }
     } catch (err) {
-      console.error(err);
-      // Show specific error in dropdown for debugging
       repoSelect.innerHTML = `<option value="">Error: ${err.message}</option>`;
       refreshReposBtn.disabled = false;
     } finally {
@@ -395,7 +334,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       repoSelect.appendChild(option);
     });
 
-    // If current repo content manually typed isn't in list, add it or handle it?
     if (currentRepo && !foundCurrent) {
       const option = document.createElement('option');
       option.value = currentRepo;
@@ -417,10 +355,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     currentRepoDisplay.textContent = state.githubRepo;
     displayCwUser.textContent = state.codewarsUsername || 'Unknown';
     messageArea.textContent = '';
-    loadStats(); // Load stats when UI shows
+    loadStats();
   }
 
-  // Load Stats from background
   async function loadStats() {
     try {
       const response = await chrome.runtime.sendMessage({ action: 'GET_STATS' });
@@ -433,7 +370,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // Update Auth UI to also enable/disable repo fetch
   function updateAuthUI() {
     if (state.githubToken) {
       authBtn.classList.add('hidden');
@@ -441,7 +377,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       ghUsernameDisplay.textContent = state.githubUsername || 'Connected';
       refreshReposBtn.disabled = false;
       repoSelect.disabled = false;
-      if (repoSelect.options.length <= 1) loadRepositories(); // Auto load if empty
+      if (repoSelect.options.length <= 1) loadRepositories();
     } else {
       authBtn.classList.remove('hidden');
       authBtn.disabled = false;
@@ -488,10 +424,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       : '<span class="icon">⚡</span> Sync Current Solution';
   }
 
-  // Check initial validity on input Change
   cwUsernameInput.addEventListener('input', () => {
-    // Invalidate verification if changed? 
-    // For now, let's reset verification state to ensure they verify again
     if (state.codewarsUsername !== cwUsernameInput.value) {
       state.codewarsUsername = null;
       saveBtn.disabled = true;
@@ -517,20 +450,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadRepositories();
   });
 
+});
 
-
-}); // End DOMContentLoaded
-
-// Global Event Delegation for Buttons (Robust Fix)
-// Global Event Delegation for Buttons (Robust Fix)
 document.addEventListener('click', async (e) => {
-  // Logout
   const logoutBtn = e.target.closest('#app-logout-btn');
   if (logoutBtn) {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Global Logout Click');
-    // REMOVE specific auth/config keys but KEEP syncHistory/stats
     await chrome.storage.local.remove([
       'codewarsUsername',
       'githubToken',
@@ -540,12 +466,10 @@ document.addEventListener('click', async (e) => {
     window.location.reload();
   }
 
-  // Clear History
   if (e.target && e.target.id === 'clear-history-btn') {
     e.preventDefault();
     if (confirm('Clear sync history?')) {
       await chrome.storage.local.remove('syncHistory');
-      // Reload UI if possible, or just reload window
       window.location.reload();
     }
   }

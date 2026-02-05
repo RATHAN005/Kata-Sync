@@ -16,11 +16,9 @@
     </header>
 
     <main>
-      <!-- Setup Section: Visible if not configured -->
       <section id="setup-section" class="hidden">
         <p class="hint">Connect your accounts to start syncing.</p>
 
-        <!-- Codewars Configuration -->
         <div class="input-group">
           <label for="codewars-username">Codewars Username</label>
           <div class="row">
@@ -30,7 +28,6 @@
           <p id="user-status" class="sub-hint hidden"></p>
         </div>
 
-        <!-- GitHub Configuration -->
         <div class="input-group">
           <label>GitHub Connection</label>
           <button id="auth-btn" class="github-btn">
@@ -61,17 +58,14 @@
               </svg>
             </button>
           </div>
-          <!-- Fallback input just in case -->
           <input type="text" id="github-repo" placeholder="username/repo" class="hidden">
         </div>
 
         <button id="save-btn" class="primary-btn" disabled>Save Configuration</button>
       </section>
 
-      <!-- Sync Section: Visible if configured -->
       <section id="sync-section" class="hidden">
 
-        <!-- Stats Row -->
         <div class="stats-container">
           <div class="stat-box">
             <span class="stat-value" id="stat-streak">0</span>
@@ -83,13 +77,11 @@
           </div>
         </div>
 
-        <!-- Navigation Tabs -->
         <nav class="tabs">
           <button class="tab-btn active" data-tab="tab-home">Sync</button>
           <button class="tab-btn" data-tab="tab-history">History</button>
         </nav>
 
-        <!-- Home Tab -->
         <div id="tab-home" class="tab-content active">
           <div class="info-card">
             <div class="config-row">
@@ -103,8 +95,6 @@
             <button id="edit-config-btn" class="icon-btn" title="Edit Configuration">✎</button>
           </div>
 
-
-
           <button id="sync-btn" class="large-action-btn">
             <span class="icon">⚡</span> Sync Current Solution
           </button>
@@ -112,10 +102,8 @@
           <div id="message-area" class="message-area"></div>
         </div>
 
-        <!-- History Tab -->
         <div id="tab-history" class="tab-content hidden">
           <div id="history-list" class="history-list">
-            <!-- History items injected here -->
             <div class="empty-state">No sync history yet.</div>
           </div>
           <button id="clear-history-btn" class="text-btn small">Clear History</button>
