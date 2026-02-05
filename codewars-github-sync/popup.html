@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Codewars Sync</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>Codewars Sync</h1>
+      <div class="status-indicator" id="status-indicator"></div>
+    </header>
+
+    <main>
+      <!-- Setup Section: Visible if not configured -->
+      <section id="setup-section" class="hidden">
+        <p class="hint">Connect your accounts to start syncing.</p>
+
+        <!-- Codewars Configuration -->
+        <div class="input-group">
+          <label for="codewars-username">Codewars Username</label>
+          <div class="row">
+            <input type="text" id="codewars-username" placeholder="Username" autocomplete="off">
+            <button id="verify-user-btn" class="secondary-btn">Verify</button>
+          </div>
+          <p id="user-status" class="sub-hint hidden"></p>
+        </div>
+
+        <!-- GitHub Configuration -->
+        <div class="input-group">
+          <label>GitHub Connection</label>
+          <button id="auth-btn" class="github-btn">
+            <svg height="20" width="20" viewBox="0 0 16 16" fill="currentColor">
+              <path
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
+              </path>
+            </svg>
+            Sign in with GitHub
+          </button>
+          <div id="github-user-info" class="hidden user-badge">
+            <span id="gh-username">Not Connected</span>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="github-repo">Target Repository</label>
+          <div class="repo-selection">
+            <select id="repo-select" disabled>
+              <option value="">Select a repository...</option>
+            </select>
+            <button id="refresh-repos-btn" class="icon-btn-large" title="Refresh Repositories" disabled>
+              <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor">
+                <path
+                  d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-7.068 2h-3.932a.25.25 0 0 1-.192-.41l1.966-2.36a.25.25 0 0 1 .384 0l1.966 2.36a.25.25 0 0 1-.192.41z" />
+                <path
+                  d="M8 1.5a6.5 6.5 0 1 0 5.734 3.447.75.75 0 1 1 1.32-.705A8 8 0 1 1 8 0a7.938 7.938 0 0 1 5.318 2.04v-.54a.75.75 0 0 1 1.5 0v3a.75.75 0 0 1-.75.75h-3a.75.75 0 0 1 0-1.5h1.242A6.471 6.471 0 0 0 8 1.5z" />
+              </svg>
+            </button>
+          </div>
+          <!-- Fallback input just in case -->
+          <input type="text" id="github-repo" placeholder="username/repo" class="hidden">
+        </div>
+
+        <button id="save-btn" class="primary-btn" disabled>Save Configuration</button>
+      </section>
+
+      <!-- Sync Section: Visible if configured -->
+      <section id="sync-section" class="hidden">
+
+        <!-- Stats Row -->
+        <div class="stats-container">
+          <div class="stat-box">
+            <span class="stat-value" id="stat-streak">0</span>
+            <span class="stat-label">Day Streak 🔥</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-value" id="stat-solved">0</span>
+            <span class="stat-label">Synced</span>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="tabs">
+          <button class="tab-btn active" data-tab="tab-home">Sync</button>
+          <button class="tab-btn" data-tab="tab-history">History</button>
+        </nav>
+
+        <!-- Home Tab -->
+        <div id="tab-home" class="tab-content active">
+          <div class="info-card">
+            <div class="config-row">
+              <span class="label">Codewars:</span>
+              <span id="display-cw-user" class="value">...</span>
+            </div>
+            <div class="config-row">
+              <span class="label">Repo:</span>
+              <span id="current-repo" class="value">...</span>
+            </div>
+            <button id="edit-config-btn" class="icon-btn" title="Edit Configuration">✎</button>
+          </div>
+
+
+
+          <button id="sync-btn" class="large-action-btn">
+            <span class="icon">⚡</span> Sync Current Solution
+          </button>
+
+          <div id="message-area" class="message-area"></div>
+        </div>
+
+        <!-- History Tab -->
+        <div id="tab-history" class="tab-content hidden">
+          <div id="history-list" class="history-list">
+            <!-- History items injected here -->
+            <div class="empty-state">No sync history yet.</div>
+          </div>
+          <button id="clear-history-btn" class="text-btn small">Clear History</button>
+        </div>
+
+      </section>
+    </main>
+
+    <footer class="social-footer">
+      <button id="app-logout-btn" class="text-btn small" style="margin-bottom: 12px; font-size: 11px;">Logout</button>
+      <div class="social-links">
+        <a href="https://github.com/RATHAN005" target="_blank" title="GitHub">
+          <svg height="20" width="20" viewBox="0 0 16 16" fill="white">
+            <path
+              d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+          </svg>
+        </a>
+        <a href="https://www.linkedin.com/in/rathan-k-52747b292/" target="_blank" title="LinkedIn">
+          <svg height="20" width="20" viewBox="0 0 24 24" fill="white">
+            <path
+              d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+          </svg>
+        </a>
+        <a href="https://www.rathanportfolio.dev" target="_blank" title="Portfolio">
+          <svg height="20" width="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+        </a>
+      </div>
+    </footer>
+  </div>
+  <script src="popup.js"></script>
+</body>
+
+</html>
