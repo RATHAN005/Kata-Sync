@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
+  // --- Elements ---
   const setupSection = document.getElementById('setup-section');
   const syncSection = document.getElementById('sync-section');
 
@@ -22,6 +23,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   const currentRepoDisplay = document.getElementById('current-repo');
   const displayCwUser = document.getElementById('display-cw-user');
 
+  const tabs = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
+  const clearHistoryBtn = document.getElementById('clear-history-btn');
+  const historyList = document.getElementById('history-list');
+
+  // --- State ---
   let state = {
     codewarsUsername: null,
     githubToken: null,
@@ -29,6 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     githubRepo: null
   };
 
+  // --- Initialization ---
   async function init() {
     const data = await chrome.storage.local.get([
       'codewarsUsername',
@@ -47,34 +55,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (state.githubRepo) githubRepoInput.value = state.githubRepo;
       updateAuthUI();
       checkFormValidity();
+
+      if (state.githubToken) {
+        loadRepositories();
+      }
     }
   }
 
   init();
   createFireflies();
 
-  function createFireflies() {
-    const existing = document.querySelectorAll('.firefly');
-    existing.forEach(el => el.remove());
-
-    const container = document.body;
-
-    for (let i = 1; i <= 15; i++) {
-      const fly = document.createElement('div');
-      fly.className = 'firefly';
-
-      const moveAnim = `move${(i % 6) + 1}`;
-      const duration = 15 + Math.random() * 15 + 's';
-      const delay = Math.random() * 5 + 's';
-
-      fly.style.animationName = moveAnim;
-      fly.style.animationDuration = duration;
-      fly.style.animationDelay = delay;
-
-      container.appendChild(fly);
-    }
-  }
-
+  // --- Event Listeners ---
   verifyUserBtn.addEventListener('click', async () => {
     const username = cwUsernameInput.value.trim();
     if (!username) return showStatus(userStatus, 'Please enter a username', 'error');
@@ -82,21 +73,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     verifyUserBtn.disabled = true;
     verifyUserBtn.textContent = '...';
 
-    const response = await chrome.runtime.sendMessage({
-      action: 'VERIFY_USER',
-      username: username
-    });
+    try {
+      const response = await chrome.runtime.sendMessage({
+        action: 'VERIFY_USER',
+        username: username
+      });
 
-    verifyUserBtn.disabled = false;
-    verifyUserBtn.textContent = 'Verify';
-
-    if (response && response.success) {
-      state.codewarsUsername = response.username;
-      showStatus(userStatus, `✅ Found: ${response.rank} (${response.honor})`, 'success');
+      if (response && response.success) {
+        state.codewarsUsername = response.username;
+        showStatus(userStatus, `✅ Found: ${response.rank} (${response.honor})`, 'success');
+      } else {
+        state.codewarsUsername = null;
+        showStatus(userStatus, '❌ User not found', 'error');
+      }
+    } catch (err) {
+      showStatus(userStatus, '❌ Error verifying user', 'error');
+    } finally {
+      verifyUserBtn.disabled = false;
+      verifyUserBtn.textContent = 'Verify';
       checkFormValidity();
-    } else {
-      state.codewarsUsername = null;
-      showStatus(userStatus, '❌ User not found', 'error');
     }
   });
 
@@ -115,16 +110,16 @@ document.addEventListener('DOMContentLoaded', async () => {
           githubUsername: response.username
         });
         updateAuthUI();
+        loadRepositories();
         checkFormValidity();
       } else {
-        authBtn.disabled = false;
-        authBtn.innerHTML = 'Sign in with GitHub';
         alert('Authentication failed: ' + (response?.error || 'Unknown error'));
       }
     } catch (err) {
+      alert('Error: ' + err.message);
+    } finally {
       authBtn.disabled = false;
       authBtn.innerHTML = 'Sign in with GitHub';
-      alert('Error: ' + err.message);
     }
   });
 
@@ -184,31 +179,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     cwUsernameInput.value = state.codewarsUsername || '';
     githubRepoInput.value = state.githubRepo || '';
     updateAuthUI();
-  });
-
-  async function init() {
-    const data = await chrome.storage.local.get([
-      'codewarsUsername',
-      'githubToken',
-      'githubUsername',
-      'githubRepo'
-    ]);
-
-    state = { ...state, ...data };
-
-    if (state.codewarsUsername && state.githubToken && state.githubRepo) {
-      showSyncUI();
-    } else {
-      showSetupUI();
-      if (state.codewarsUsername) cwUsernameInput.value = state.codewarsUsername;
-      if (state.githubRepo) githubRepoInput.value = state.githubRepo;
-      updateAuthUI();
-
-      if (state.githubToken) {
-        loadRepositories();
-      }
+    if (state.githubToken && repoSelect.options.length <= 1) {
+      loadRepositories();
     }
-  }
+  });
 
   refreshReposBtn.addEventListener('click', loadRepositories);
 
@@ -221,8 +195,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  const tabs = document.querySelectorAll('.tab-btn');
-  const tabContents = document.querySelectorAll('.tab-content');
+  cwUsernameInput.addEventListener('input', () => {
+    if (state.codewarsUsername !== cwUsernameInput.value) {
+      state.codewarsUsername = null;
+      saveBtn.disabled = true;
+      userStatus.classList.add('hidden');
+    }
+  });
+
+  githubRepoInput.addEventListener('input', () => {
+    state.githubRepo = githubRepoInput.value.trim();
+    checkFormValidity();
+  });
 
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
@@ -244,15 +228,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
-  const clearHistoryBtn = document.getElementById('clear-history-btn');
-  const historyList = document.getElementById('history-list');
-
   clearHistoryBtn.addEventListener('click', async () => {
     if (confirm('Clear sync history?')) {
       await chrome.storage.local.remove('syncHistory');
       loadHistory();
+      loadStats();
     }
   });
+
+  // --- Helper Functions ---
+  function createFireflies() {
+    const existing = document.querySelectorAll('.firefly');
+    existing.forEach(el => el.remove());
+
+    const container = document.body;
+    for (let i = 1; i <= 15; i++) {
+      const fly = document.createElement('div');
+      fly.className = 'firefly';
+      const moveAnim = `move${(i % 6) + 1}`;
+      fly.style.animationName = moveAnim;
+      fly.style.animationDuration = (15 + Math.random() * 15) + 's';
+      fly.style.animationDelay = (Math.random() * 5) + 's';
+      container.appendChild(fly);
+    }
+  }
 
   async function loadHistory() {
     const data = await chrome.storage.local.get('syncHistory');
@@ -270,20 +269,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     history.forEach(item => {
       const div = document.createElement('div');
       div.className = 'history-item';
-
       const date = new Date(item.timestamp).toLocaleDateString();
 
       div.innerHTML = `
-            <div class="history-item-left">
-                <span class="history-title">${item.title}</span>
-                <div class="history-meta">
-                    <span class="history-rank">${item.rank}</span>
-                    <span>${item.language}</span>
-                    <span>• ${date}</span>
+                <div class="history-item-left">
+                    <span class="history-title">${item.title}</span>
+                    <div class="history-meta">
+                        <span class="history-rank">${item.rank}</span>
+                        <span>${item.language}</span>
+                        <span>• ${date}</span>
+                    </div>
                 </div>
-            </div>
-            ${item.url ? `<a href="${item.url}" target="_blank" class="history-btn">View</a>` : ''}
-        `;
+                ${item.url ? `<a href="${item.url}" target="_blank" class="history-btn">View</a>` : ''}
+            `;
       historyList.appendChild(div);
     });
   }
@@ -310,7 +308,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     } catch (err) {
       repoSelect.innerHTML = `<option value="">Error: ${err.message}</option>`;
-      refreshReposBtn.disabled = false;
     } finally {
       refreshReposBtn.disabled = false;
       repoSelect.disabled = false;
@@ -377,15 +374,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       ghUsernameDisplay.textContent = state.githubUsername || 'Connected';
       refreshReposBtn.disabled = false;
       repoSelect.disabled = false;
-      if (repoSelect.options.length <= 1) loadRepositories();
     } else {
       authBtn.classList.remove('hidden');
       authBtn.disabled = false;
       authBtn.innerHTML = `
-            <svg height="20" width="20" viewBox="0 0 16 16" fill="currentColor">
-                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
-            </svg>
-            Sign in with GitHub`;
+                <svg height="20" width="20" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+                Sign in with GitHub`;
       ghUserInfo.classList.add('hidden');
       refreshReposBtn.disabled = true;
       repoSelect.disabled = true;
@@ -394,22 +390,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function checkFormValidity() {
     const repo = repoSelect.value || githubRepoInput.value.trim();
-    if (state.githubToken && state.codewarsUsername && repo) {
-      saveBtn.disabled = false;
-    } else {
-      saveBtn.disabled = true;
-    }
+    saveBtn.disabled = !(state.githubToken && state.codewarsUsername && repo);
   }
 
   function showStatus(element, text, type) {
     element.textContent = text;
     element.className = 'sub-hint ' + type;
     element.classList.remove('hidden');
-    if (type === 'success') {
-      element.style.color = 'var(--success)';
-    } else if (type === 'error') {
-      element.style.color = 'var(--error)';
-    }
+    element.style.color = type === 'success' ? 'var(--success)' : (type === 'error' ? 'var(--error)' : 'inherit');
   }
 
   function showMessage(text, type = 'normal') {
@@ -424,53 +412,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       : '<span class="icon">⚡</span> Sync Current Solution';
   }
 
-  cwUsernameInput.addEventListener('input', () => {
-    if (state.codewarsUsername !== cwUsernameInput.value) {
-      state.codewarsUsername = null;
-      saveBtn.disabled = true;
-      userStatus.classList.add('hidden');
+  // --- Global Click Handler for Logout ---
+  document.addEventListener('click', async (e) => {
+    const logoutBtn = e.target.closest('#app-logout-btn');
+    if (logoutBtn) {
+      e.preventDefault();
+      if (confirm('Are you sure you want to logout? This will clear your settings.')) {
+        await chrome.storage.local.remove([
+          'codewarsUsername',
+          'githubToken',
+          'githubUsername',
+          'githubRepo'
+        ]);
+        window.location.reload();
+      }
     }
   });
-
-  githubRepoInput.addEventListener('input', () => {
-    state.githubRepo = githubRepoInput.value.trim();
-    checkFormValidity();
-  });
-
-  repoSelect.addEventListener('change', () => {
-    const selected = repoSelect.value;
-    if (selected) {
-      githubRepoInput.value = selected;
-      state.githubRepo = selected;
-    }
-    checkFormValidity();
-  });
-
-  refreshReposBtn.addEventListener('click', () => {
-    loadRepositories();
-  });
-
 });
 
-document.addEventListener('click', async (e) => {
-  const logoutBtn = e.target.closest('#app-logout-btn');
-  if (logoutBtn) {
-    e.preventDefault();
-    e.stopPropagation();
-    await chrome.storage.local.remove([
-      'codewarsUsername',
-      'githubToken',
-      'githubUsername',
-      'githubRepo'
-    ]);
-    window.location.reload();
-  }
-
-  if (e.target && e.target.id === 'clear-history-btn') {
-    e.preventDefault();
-    if (confirm('Clear sync history?')) {
-      await chrome.storage.local.remove('syncHistory');
-      window.location.reload();
-    }
-  }
-});

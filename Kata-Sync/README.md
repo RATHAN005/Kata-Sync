@@ -30,4 +30,13 @@ A Chrome Extension that allows you to sync your Codewars solutions to a GitHub r
 ## Structure
 Files are saved in the following structure:
 `codewars/<language>/<rank>/<kata-slug>.<extension>`
+
+| Variable | Description | Example |
+| :--- | :--- | :--- |
+| `codewars/` | The root directory for all synced solutions. | `codewars/` |
+| `<language>/` | The programming language of the solution. | `javascript` |
+| `<rank>/` | The difficulty rank of the challenge. | `6-kyu` |
+| `<kata-slug>` | The URL-friendly identifier of the challenge. | `multiples-of-3-or-5` |
+| `.<extension>` | The file extension corresponding to the language. | `.js` |
+
 Example: `codewars/javascript/6-kyu/multiples-of-3-or-5.js`

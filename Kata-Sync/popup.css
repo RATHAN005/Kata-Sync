@@ -207,9 +207,11 @@ header {
 
 h1 {
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--primary);
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.5px;
 }
 
 .hidden {
@@ -268,26 +270,19 @@ button {
   transition: all 0.2s;
 }
 
-h1 {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 800;
-  color: #fff;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  letter-spacing: 0.5px;
-}
+/* Removed duplicate h1 styles */
 
 .stat-value {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 800;
   color: var(--primary);
-  line-height: 1.1;
+  line-height: 1.2;
   text-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
 }
 
 .stat-label {
   font-size: 11px;
-  color: #cbd5e1;
+  color: #ffffff;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -676,20 +671,9 @@ select option {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.stat-value {
-  font-size: 24px;
-  font-weight: 800;
-  color: var(--primary);
-  line-height: 1.2;
-}
+/* Removed duplicate .stat-value styles */
 
-.stat-label {
-  font-size: 11px;
-  color: #ffffff;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
+/* Removed duplicate .stat-label styles */
 
 .social-footer {
   margin-top: 16px;

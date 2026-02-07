@@ -66,21 +66,31 @@ function extractKataData() {
 }
 
 function setupAutoSync() {
-    const observer = new MutationObserver((mutations) => {
-        const submitBtn = document.getElementById('submit_btn');
-        if (submitBtn && !submitBtn.dataset.hasSyncListener) {
-            submitBtn.dataset.hasSyncListener = 'true';
-            submitBtn.addEventListener('click', () => {
-                console.log('Submit button clicked. Triggering Auto-Sync...');
-                chrome.runtime.sendMessage({ action: 'AUTO_SYNC_TRIGGERED' });
-            });
-        }
-    });
+    console.log('Kata-Sync: Listening for Submit...');
 
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
-    });
+    // Use Capture Phase (true) to catch the event before Codewars/jQuery stops it.
+    document.addEventListener('click', (event) => {
+        const target = event.target;
+        const btn = target.closest('#submit_btn, [data-action="finalize"]');
+
+        if (btn) {
+            console.log('Kata-Sync: Submit detected on', btn.id);
+
+            // Extract immediately
+            setTimeout(() => {
+                const data = extractKataData();
+                if (data && data.code) {
+                    console.log('Kata-Sync: Sending payload...');
+                    chrome.runtime.sendMessage({
+                        action: 'AUTO_SYNC_TRIGGERED',
+                        kataData: data
+                    });
+                } else {
+                    console.warn('Kata-Sync: data extraction failed');
+                }
+            }, 50);
+        }
+    }, true);
 }
 
 if (document.readyState === 'loading') {

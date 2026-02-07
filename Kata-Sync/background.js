@@ -47,16 +47,35 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
     }
     if (request.action === 'AUTO_SYNC_TRIGGERED') {
+        console.log("Background: Received AUTO_SYNC_TRIGGERED", request.kataData ? request.kataData.title : "No Data");
         chrome.storage.local.get(['githubToken', 'githubRepo'], (data) => {
             if (data.githubToken && data.githubRepo) {
-                console.log('Auto-Sync triggered.');
+                console.log('Background: Auto-Sync triggered for repo:', data.githubRepo);
                 handleSync({
                     token: data.githubToken,
                     repo: data.githubRepo,
-                    isAuto: true
+                    isAuto: true,
+                    kataData: request.kataData
+                }).then(result => {
+                    console.log("Background: Auto-Sync result:", result);
+                    if (result && !result.success) {
+                        console.error('Auto-Sync failed:', result.error);
+                        chrome.notifications.create({
+                            type: 'basic',
+                            iconUrl: 'icons/icon48.png',
+                            title: 'Sync Failed',
+                            message: result.error
+                        });
+                    }
                 });
             } else {
                 console.warn('Auto-Sync skipped: Configuration missing.');
+                chrome.notifications.create({
+                    type: 'basic',
+                    iconUrl: 'icons/icon48.png',
+                    title: 'Configuration Needed',
+                    message: 'Please set your GitHub Token and Repo in the Kata-Sync popup.'
+                });
             }
         });
         return true;
@@ -408,14 +427,16 @@ async function updateRepoReadme(token, repo, kataData, filePath) {
 Welcome! This repository is automatically updated with my solutions to various algorithmic problems on [Codewars](https://www.codewars.com).
 
 ## 🚀 Solved Problems
-${tableHeader}
+${tableHeader.trim()}
 ${newRow}
 `;
     } else {
         if (content.includes('| :--- |')) {
-            content += `\n${newRow}`;
+            // Append to the end of the file, ensuring we attach it to the table (no empty lines)
+            content = content.trimEnd() + `\n${newRow}`;
         } else {
-            content += `\n\n## 🚀 Solved Problems\n${tableHeader}\n${newRow}\n`;
+            // Create the table if it doesn't exist
+            content = content.trimEnd() + `\n\n## 🚀 Solved Problems\n${tableHeader.trim()}\n${newRow}\n`;
         }
     }
 

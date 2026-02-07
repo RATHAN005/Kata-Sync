@@ -22,7 +22,8 @@
         <div class="input-group">
           <label for="codewars-username">Codewars Username</label>
           <div class="row">
-            <input type="text" id="codewars-username" placeholder="Username" autocomplete="off">
+            <input type="text" id="codewars-username" name="codewars-username" placeholder="Username"
+              autocomplete="off">
             <button id="verify-user-btn" class="secondary-btn">Verify</button>
           </div>
           <p id="user-status" class="sub-hint hidden"></p>
@@ -46,7 +47,7 @@
         <div class="input-group">
           <label for="github-repo">Target Repository</label>
           <div class="repo-selection">
-            <select id="repo-select" disabled>
+            <select id="repo-select" name="repo-select" disabled>
               <option value="">Select a repository...</option>
             </select>
             <button id="refresh-repos-btn" class="icon-btn-large" title="Refresh Repositories" disabled>
@@ -58,7 +59,7 @@
               </svg>
             </button>
           </div>
-          <input type="text" id="github-repo" placeholder="username/repo" class="hidden">
+          <input type="text" id="github-repo" name="github-repo" placeholder="username/repo" class="hidden">
         </div>
 
         <button id="save-btn" class="primary-btn" disabled>Save Configuration</button>
